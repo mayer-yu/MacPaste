@@ -45,8 +45,32 @@ final class HotKeyManager: ObservableObject {
 
     /// 打开系统辅助功能设置页
     func openAccessibilitySettings() {
-        let url = URL(string: "x-apple-systempreferences:com.apple.preference.security?Privacy_Accessibility")!
-        NSWorkspace.shared.open(url)
+        // 不同 macOS 版本存在不同 scheme，按顺序尝试，避免弹出“未设定打开应用程序”。
+        let candidates: [String] = [
+            "x-apple.systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            "x-apple-systempreferences:com.apple.preference.security?Privacy_Accessibility",
+            "x-apple.systempreferences:com.apple.preference.security",
+            "x-apple-systempreferences:com.apple.preference.security"
+        ]
+
+        for item in candidates {
+            if let url = URL(string: item), NSWorkspace.shared.open(url) {
+                return
+            }
+        }
+
+        // 兜底：至少打开系统设置应用，用户可手动进入 隐私与安全性 -> 辅助功能。
+        let appPaths = [
+            "/System/Applications/System Settings.app",
+            "/System/Applications/System Preferences.app"
+        ]
+        let fileManager = FileManager.default
+        for path in appPaths {
+            let appURL = URL(fileURLWithPath: path)
+            if fileManager.fileExists(atPath: appURL.path), NSWorkspace.shared.open(appURL) {
+                return
+            }
+        }
     }
 
     /// 注册 Shift+Command+V
