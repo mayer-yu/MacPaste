@@ -156,10 +156,11 @@ struct PasteHistoryView: View {
                 .onChange(of: filteredItems.map(\.id)) { _ in
                     scrollSelectionIntoView(using: proxy, animated: false)
                 }
-                .onReceive(NotificationCenter.default.publisher(for: NSPopover.didShowNotification)) { _ in
+                .onReceive(NotificationCenter.default.publisher(for: NSPopover.willShowNotification)) { _ in
+                    resetSelectionToFirst()
                     scrollSelectionIntoView(using: proxy, animated: false)
                 }
-                .onReceive(NotificationCenter.default.publisher(for: NSPopover.willShowNotification)) { _ in
+                .onReceive(NotificationCenter.default.publisher(for: NSPopover.didShowNotification)) { _ in
                     scrollSelectionIntoView(using: proxy, animated: false)
                 }
                 .onReceive(NotificationCenter.default.publisher(for: NSWindow.didBecomeKeyNotification)) { _ in
@@ -240,6 +241,10 @@ struct PasteHistoryView: View {
         if selectedItemID == nil {
             selectedItemID = filteredItems.first?.id
         }
+    }
+
+    private func resetSelectionToFirst() {
+        selectedItemID = filteredItems.first?.id
     }
 
     private func adjustSelectionForCurrentData() {
